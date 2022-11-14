@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diffie hellman Key exchange</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: #D6E4E5;
+        }
+        .contentMain {
+            display: flex;
+            justify-content: space-evenly;
+        }
+        .lsection {
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+        }
+        .rsection {
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <h1 style="text-align: center; color: #497174;">Diffie Hellman Key Exchange</h1>
+        <hr>
+        <div class="contentMain">
+            <div class="lsection">
+                <h2 style="color: rgb(73, 113, 116, 0.7); margin-bottom: 40px; text-align: center;">Public Key Generation</h2>
+                <div class="form-group">
+                    <label for="primeTxt" id="primeTxt">Enter prime number </label>
+                    <input type="text" class="form-control" id="prime">
+                    <small class="form-text text-muted" id="primeValidation"></small>
+                </div>
+            
+                <div class="form-group">
+                    <label for="Primitiveroot">Primitive root </label>
+                    <select class="form-control" id="primitiveRoot">
+                     
+                    </select>
+                  </div>
+
+                <!-- <input type="text" disabled id="gprime"/> -->
+                <div class="form-group">
+                    <label for="randomVal" >Enter random value (XA) : </label>
+                    <input type="text" class="form-control" id="randomValue" value="50">
+                    <small  class="form-text text-muted">XA will be random value which will be treated as private key!.</small>
+                    <small class="form-text text-muted">Please Do not share key</small>
+                </div>
+                
+                <h3 class="text-muted">Public key : <span id="pubkey"></span></h3>
+                <button type="submit" class="btn btn-primary" id="submitButton" disabled>Generate</button>
+            </div>
+            <div class="rsection">
+                <h2 style="color: rgb(73, 113, 116, 0.7); margin-bottom: 40px; text-align: center;">Shared key Generation</h2>
+                
+                <div class="form-group">
+                    <label for="primeTxt2" id="primeTxt2">Enter prime number </label>
+                    <input type="text" class="form-control" id="prime2">
+                    <small class="form-text text-muted" id="primeValidation2"></small>
+                </div>
+
+                <div class="form-group">
+                    <label id="ybText">Enter YB </label>
+                    <input type="text" class="form-control" id="yb">
+                    <small class="form-text text-muted" id="ybValidation">Computed value by other user</small>
+                </div>
+
+                <div class="form-group">
+                    <label id="xaText">Enter XA </label>
+                    <input type="text" class="form-control" id="xa">
+                    <small class="form-text text-muted" id="xaValidation">Private key</small>
+                </div>
+
+                <h3 class="text-muted">Shared secret key : <span id="shkey"></span></h3>
+                <button type="submit" class="btn btn-primary" id="submitButtonShared" disabled>Generate</button>
+            </div>
+        </div>
+    
+    </div>
+</body>
+</html>
+<script>
+
+    const button = document.getElementById("submitButton");
+    const prime = document.getElementById("prime");
+    const primitiveRootHTML = document.getElementById("primitiveRoot");
+    const randomValue = document.getElementById("randomValue");
+    const pubkey = document.getElementById("pubkey");
+    const primeTxt = document.getElementById("primeTxt");
+    const primeValidation = document.getElementById("primeValidation");
+
+    const prime2 = document.getElementById("prime2");
+    const primeTxt2 = document.getElementById("primeTxt2");
+    const primeValidation2 = document.getElementById("primeValidation2");
+    const submitButtonShared = document.getElementById("submitButtonShared");
+    const xaValue = document.getElementById("xa");
+    const ybValue = document.getElementById("yb");
+    const shkey = document.getElementById("shkey");
+
+    function submitButtonSharedHandler() {
+        if(!xaValue.value || !ybValue.value){
+            submitButtonShared.disabled = true;
+        } else if (isNaN(xaValue.value) && isNaN(ybValue.value)) {
+            submitButtonShared.disabled = true;    
+        } else {
+            submitButtonShared.disabled = false;
+        }
+    }
+
+    xaValue.addEventListener("input", (ev)=>{
+        submitButtonSharedHandler();
+    })
+
+    ybValue.addEventListener("input", (ev)=>{
+        submitButtonSharedHandler();
+    })
+
+    prime2.addEventListener("input", (ev)=>{
+        if (prime2.value === "") {
+            primeValidation2.innerHTML = "";
+            primeTxt2.style.color = "black";
+            submitButtonShared.disabled = true;
+        }
+        else if (isNaN(prime2.value)) {
+            primeValidation2.innerHTML = "Please Enter number"
+            primeTxt2.style.color = "red";
+            submitButtonShared.disabled = true;
+        } 
+        else{
+            if (isPrime(prime2.value)) {
+                primeValidation2.innerText = prime2.value == 2 ? "Please choose greater than 2 as a prime number" : " ";
+                primeTxt2.style.color = "black";
+                submitButtonShared.disabled = (prime2.value == 2);
+                submitButtonSharedHandler();
+            } else {
+                primeValidation2.innerText = "Please Enter valid prime number";
+                primeTxt2.style.color = "red";
+                submitButtonShared.disabled = true;
+            }
+        }
+    });
+
+    submitButtonShared.addEventListener("click", (ev)=>{
+        shkey.innerHTML = keyGenerationDiffieHellman(BigInt(ybValue.value), BigInt(xaValue.value), BigInt(prime2.value));
+    });
+
+    // Returns true if n is prime
+    function isPrime(n) {
+        // Corner cases
+        if (n <= 1)
+            return false;
+        if (n <= 3)
+            return true;
+
+        // This is checked so that we can skip
+        // middle five numbers in below loop
+        if (n % 2 == 0 || n % 3 == 0)
+            return false;
+
+        for (let i = 5; i * i <= n; i = i + 6){
+            if (n % i == 0 || n % (i + 2) == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /* Iterative Function to calculate (x^n)%p in O(logy) */
+
+    function power(x, y, p) {
+        let res = 1;	 // Initialize result
+
+        x = x % p; // Update x if it is more than or
+        // equal to p
+
+        while (y > 0) {
+            // If y is odd, multiply x with result
+            if (y & 1)
+                res = (res * x) % p;
+
+            // y must be even now
+            y = y >> 1; // y = y/2
+            x = (x * x) % p;
+        }
+        return res;
+    }
+
+    // Utility function to store prime factors of a number
+    function findPrimefactors(s, n) {
+        // Print the number of 2s that divide n
+        while (n % 2 == 0) {
+            s.add(2);
+            n = n / 2;
+        }
+
+        // n must be odd at this point. So we can skip
+        // one element (Note i = i +2)
+        for (let i = 3; i <= Math.sqrt(n); i = i + 2) {
+            // While i divides n, print i and divide n
+            while (n % i == 0) {
+                s.add(i);
+                n = n / i;
+            }
+        }
+
+        // This condition is to handle the case when
+        // n is a prime number greater than 2
+        if (n > 2)
+            s.add(n);
+    }
+
+    // Function to find smallest primitive root of n
+    function findPrimitive(n) {
+        let s = new Set();
+        primitiveRootHTML.innerHTML = "";
+        // Check if n is prime or not
+        if (isPrime(n) == false)
+            return -1;
+
+        // Find value of Euler Totient function of n
+        // Since n is a prime number, the value of Euler
+        // Totient function is n-1 as there are n-1
+        // relatively prime numbers.
+        let phi = n - 1;
+
+        // Find prime factors of phi and store in a set
+        findPrimefactors(s, phi);
+
+        const primitiveRoot = []
+
+        // Check for every number from 2 to phi
+        for (let r = 2; r <= phi; r++) {
+            // Iterate through all prime factors of phi.
+            // and check if we found a power with value 1
+            let flag = false;
+            for (let it of s) {
+
+                // Check if r^((phi)/primefactors) mod n
+                // is 1 or not
+                if (power(r, phi / it, n) == 1) {
+                    flag = true;
+                    break;
+                }
+            }
+
+            // If there was no power with value 1.
+            if (flag == false)
+                primitiveRoot.push(r);
+        }
+
+        primitiveRootHTML.innerHTML = primitiveRoot.map(e => `<option value="${e}" >${e}</option>`).join("");
+
+        // If no primitive root found
+        return -1;
+    }
+
+    function keyGenerationDiffieHellman(g, xa, p) {
+        return (g ** xa) % p;
+    }
+
+    prime.addEventListener("input", (ev)=>{
+        if (prime.value === "") {
+            primeValidation.innerHTML = "";
+            primeTxt.style.color = "black";
+            submitButton.disabled = true;
+        }
+        else if (isNaN(prime.value)) {
+            primeValidation.innerHTML = "Please Enter number"
+            primeTxt.style.color = "red";
+            submitButton.disabled = true;
+        } 
+        else{
+            if (isPrime(prime.value)) {
+            primeValidation.innerText = prime.value == 2 ? "Please choose greater than 2 as a prime number" : " ";
+            findPrimitive(prime.value);
+            primeTxt.style.color = "black";
+            submitButton.disabled = (prime.value == 2);
+            } else {
+                primeValidation.innerText = "Please Enter valid prime number"
+                primitiveRootHTML.innerHTML = ""
+                primeTxt.style.color = "red";
+                submitButton.disabled = true;
+            }
+        }
+    })
+
+    // Driver code
+    button.addEventListener("click", (ev)=>{   
+        if (isPrime(prime.value)) {
+            pubkey.innerHTML = keyGenerationDiffieHellman(BigInt(primitiveRootHTML.value), BigInt(randomValue.value), BigInt(prime.value));
+        } else{
+            window.alert("Enter valid prime number");
+            prime.value = "";
+            gprime.value = "";
+            randomValue.value = "";
+            pubkey.innerHTML = "";
+        }
+    }); 
+
+
+</script>
